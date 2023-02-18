@@ -1,16 +1,29 @@
 <template>
     <app-layout title="Results">
-        <div class="absolute bottom-0 left-0 p-4 border-gray-200 invisible">
-        <PrimaryButton
-            class="btn btn-success border-gray-200"
-            @click="exportToCSV()"
-        >Export To CSV
-        </PrimaryButton>
+        <div class="absolute bottom-0 left-0 p-4 border-gray-200">
+            <div>
+                <PrimaryButton
+                    class="btn btn-success border-gray-200"
+                    @click="showExportModal"
+                > Export Data
+                </PrimaryButton>
+                <!--
+                <PrimaryButton
+                    class="btn ml-3 btn-success border-gray-200"
+                    type="file"
+                    @click="importJSON"
+                > Import JSON
+                </PrimaryButton> -->
+                <div>
+                    <label>Upload Zipped Folder: </label>
+                    <input type="file" accept=".zip" @change="onZipFileSelected" />
+                </div>
+            </div>
         </div>
         <div class="flex flex-col dark:text-black">
             <div class="py-4 flex flex-row flex-shrink">
                 <div class="w-1/4 px-4">
-                    <div class="bg-white shadow-xl sm:rounded-lg dark:shadow-inner dark:shadow-cyan-500 dark:bg-slate-900 dark:text-white" >
+                    <div class="bg-white shadow-xl sm:rounded-lg dark:shadow-inner dark:shadow-cyan-500 dark:bg-slate-900 dark:text-white" ref="wavesurferRegion">
                         <div class="p-2">
                             2D Waveform Spectrogram
                             <div class="flex-row pr-2 pt-2 overflow-hidden">
@@ -44,8 +57,7 @@
                                 class="btn btn-success border-gray-200"
                                 @click="switchMode()"
                             >Single File Analysis
-                            </PrimaryButton
-                            >
+                            </PrimaryButton>
                             <PrimaryButton
                                 v-if="evaluateMultiFile()"
                                 class="btn btn-success border-gray-200"
@@ -410,12 +422,54 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal with data exportation settings. -->
+            <DialogModal :show="showModal" @close="showModal = false">
+                <template #title>
+                    <div>
+                        <p class="text-xl">
+                            Export Data {{exportingJSON ? 'as JSON': 'as PDF'}}
+                        </p>
+                        <!-- Div for switching between exporting PDF or JSON -->
+                        <div class="flex flex-row absolute top-4 right-4 border-2 border-red-500">
+                            <p class="text-sm align-middle">PDF</p>
+                            <!-- Switch Container -->
+                            <div class="w-16 h-10 cursor-pointer flex items-center bg-gray-300 rounded-full p-1" @click="exportingJSON = !exportingJSON">
+                                <div class="bg-white w-8 h-8 rounded-full shadow-md transform duration-300 ease-in-out" :class="{ 'translate-x-6': exportingJSON,}"></div>
+                            </div>
+                            <p class="text-sm align-middle">JSON</p>
+                        </div>
+                    </div>
+                </template>
+
+                <template #content>
+                    <div>
+                        {{exportingJSON ? 'Options for JSON file:': 'Options for PDF file:'}}
+                    </div>
+                    <!-- JSON export options-->
+                    <div v-if="exportingJSON">TODO: JSON export options</div>
+                    <!-- PDF export options-->
+                    <div v-else>TODO: PDF export options</div>
+                </template>
+
+                <template #footer>
+                    <PrimaryButton @click="closeExportModal" class="ml-3 bg-red-800">
+                        CANCEL
+                    </PrimaryButton>
+
+                    <PrimaryButton @click="exportData" class="ml-3">
+                        EXPORT
+                    </PrimaryButton>
+                </template>
+            </DialogModal>
+
         </div>
     </app-layout>
 </template>
 
 <script>
 import {defineComponent} from "vue";
+import { ref } from 'vue';
 import AppLayout from "@/Layouts/AppLayout.vue";
 import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/src/plugin/regions";
@@ -430,7 +484,13 @@ import SingleBar from '@/Pages/ChartVisualizations/SingleBar.vue';
 import SingleLine from '@/Pages/ChartVisualizations/SingleLine.vue';
 import AllInSiteChart from '@/Pages/ChartVisualizations/AllInSiteChart.vue';
 import QuadLine from '@/Pages/ChartVisualizations/QuadLine.vue'
+import DialogModal from '@/Components/DialogModal.vue';
+import Modal from '@/Pages/Partial/Modal.vue';
 import {usePage} from '@inertiajs/vue3'
+import jsPDF from "jspdf";
+import * as JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import html2canvas from 'html2canvas';
 
 let compareIndex = "";
 let graphInput, graphInputC;
@@ -448,10 +508,15 @@ export default defineComponent({
         VueElementLoading,
         QuadLine,
         DualLinexy,
-        AllInSiteChart
+        AllInSiteChart,
+        DialogModal,
     },
     data() {
         return {
+            showModal: false,
+            exportingJSON: true,
+            wavFile: null,
+            annotations: null,
             spFile: "",
             sFile: "",
             cFile: "",
@@ -500,6 +565,99 @@ export default defineComponent({
         };
     },
     methods: {
+
+        exportData: function () {
+            this.exportingJSON ? this.exportAsJSON() : this.exportAsPDF();
+        },
+
+        generateImage: async function (element) {
+            const canvas = await html2canvas(element);
+            console.log(`canvas type: ${typeof canvas}\ncanvas.toDataURL("image/jpeg"): ${canvas.toDataURL("image/jpeg")}`)
+            return canvas.toDataURL("image/jpeg");
+        },
+
+        exportAsPDF: function () {
+            console.log('exporting PDF');
+            var doc = new jsPDF();
+            var title = "exported_data";
+            doc.text("EXAMPLE PDF", 10, 10);
+
+            // Export the Wavesurfer diagram as an SVG image
+            const svg = this.wavesurfer.exportImage("svg");
+
+            // Create an <img> element and set its src attribute to the SVG image data
+            const img = document.createElement("img");
+            img.src = "data:image/svg+xml;base64," + btoa(svg);
+
+            // Add the <img> element to the PDF
+            doc.addImage(img, "JPEG", 10, 50, 180, 150);
+
+            // const wavesurferRegion = this.generateImage(document.getElementById("wavesurfer-container"));
+            // doc.addImage(wavesurferRegion, "JPEG", 10, 50, 180, 150);
+            doc.save(`${title}.pdf`);
+        },
+
+        exportAsJSON: function () {
+            console.log('exporting JSON in zipped folder.');
+            let test = {"name":"John", "age":30, "car":null};
+
+            var zip = new JSZip();
+            zip.file("data.json", JSON.stringify(test));    // Add JSON annotations
+            if(this.wavFile != "")
+            {
+                zip.file("audio.wav", this.wavFile);        // Add audio file
+            }
+
+            zip.generateAsync({type:"blob"})
+            .then(function(content) {
+                saveAs(content, "example.zip");
+            });
+        },
+
+        // Method for uploading zipped folder containing audio data and annotations.
+        onZipFileSelected: function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                const zip = new JSZip();
+                const zipData = reader.result;
+
+                zip.loadAsync(zipData).then((contents) => {
+                    const requiredFiles = ["audio.wav", "data.json"];
+
+                    // If a required file is missing, throw error.
+                    for (const requiredFile of requiredFiles)
+                    {
+                        if (!contents.files[requiredFile])
+                        {
+                            console.error(`Required file "${requiredFile}" not found`);
+                            return;
+                        }
+                    }
+                    // Get contents of the audio file
+                    contents.files["audio.wav"].async("arraybuffer").then((audioData) => {
+                        this.loading = true;
+                        console.log("audioData: " + audioData);
+
+                        // Apply uploaded .wav file to embedded wavesurfer.
+                        const blob = new Blob([audioData], { type: 'audio/wav' });
+                        this.spFile = URL.createObjectURL(blob);
+                        this.$refs.player.load();
+                        this.createSpectrogram();
+                    });
+                    // Get contents of the data file
+                    contents.files["data.json"].async("string").then((jsonData) => {
+                        const data = JSON.parse(jsonData);
+                        this.annotations = data;
+                        console.log("JSONdata: " + data);
+                    });
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        },
+
         setSpFilePath: function () {
             this.loading = true;
             this.$refs.player.load();
@@ -508,9 +666,10 @@ export default defineComponent({
 
         onFileChange: function (e) {
             this.loading = true;
-            this.spFile = URL.createObjectURL(e.target.files[0]);
+            this.wavFile = e.target.files[0]
+            // this.spFile = URL.createObjectURL(e.target.files[0]);
+            this.spFile = URL.createObjectURL(this.wavFile);
             //this.spFile = "file:" + this.firstFileData.file.path;
-            //console.log(this.spFile);
             this.$refs.player.load();
             this.createSpectrogram();
         },
@@ -519,6 +678,13 @@ export default defineComponent({
             this.wavesurfer.load(this.spFile);
         },
 
+        showExportModal: function () {
+            this.showModal = true;
+        },
+
+        closeExportModal: function () {
+            this.showModal = false;
+        },
 
         showGraphs: function () {
             this.upGraphs = this.currentIndex
@@ -875,7 +1041,8 @@ export default defineComponent({
         slideView: function () {
             this.wavesurfer.zoom(Number(this.$refs.slider.value));
         },
-          exportToCSV: function () {
+
+        exportToCSV: function () {
             let csv = "";
             this.series.results.forEach((row) => {
                 csv += row.join(',');
@@ -886,12 +1053,10 @@ export default defineComponent({
             anchor.target = '_blank';
             anchor.download = 'results.csv';
             anchor.click();
-
         },
     },
     mounted() {
         const self = this;
-
         this.wavesurfer = WaveSurfer.create({
 
             hideScrollbar: true,
@@ -940,8 +1105,7 @@ export default defineComponent({
 
         this.sites = usePage().props.sites
         this.populateSiteDropdown()
-    }
-    ,
+    },
 })
 
 </script>
