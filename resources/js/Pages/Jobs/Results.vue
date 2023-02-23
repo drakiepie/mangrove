@@ -1055,6 +1055,7 @@ export default defineComponent({
                 })
             ],
         });
+<<<<<<< HEAD
          // store region list on waveform to update in local storage
         var regionList = this.wavesurfer.regions.list;
         // save annotations into browser while notes are generated
@@ -1065,6 +1066,25 @@ export default defineComponent({
             localStorage.regions = JSON.stringify(
                 Object.keys(regionList).map(function(id) {
                     let targetRegion = regionList[id];
+=======
+
+         // store region list on waveform to update in local storage
+        var regionList = this.wavesurfer.regions.list;
+
+        // save annotations into browser while notes are generated
+        this.wavesurfer.on('region-updated', function () {
+
+           //  var testJSON = JSON.stringify({x: 5, y:6});
+
+            // localStorage.regions = temp;
+
+            console.log(regionList);
+
+            localStorage.regions = JSON.stringify(
+                Object.keys(regionList).map(function(id) {
+                    let targetRegion = regionList[id];
+
+>>>>>>> 5b331b48c25311f8b977000f04e3cea9a9bce522
                     return {
                         start: targetRegion.start,
                         end: targetRegion.end,
@@ -1073,7 +1093,13 @@ export default defineComponent({
                     };
                 })
             );
+<<<<<<< HEAD
         });
+=======
+
+        });
+
+>>>>>>> 5b331b48c25311f8b977000f04e3cea9a9bce522
         this.wavesurfer.on('waveform-ready', function () {
             //self.$refs['animation'].active = false;
             self.$refs['animation'].display = "none";
@@ -1087,10 +1113,18 @@ export default defineComponent({
                 self.wavesurfer.seekTo(self.currTime / self.wavesurfer.getDuration());
             }
         });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b331b48c25311f8b977000f04e3cea9a9bce522
         // loop region on shift + right click
         this.wavesurfer.on('region-click', function (region, e) {
             e.shiftKey ? region.playLoop() : region.play();
         });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b331b48c25311f8b977000f04e3cea9a9bce522
         // edit regional annotation
         this.wavesurfer.on('region-click', function (region) {
             let form = document.forms.edit;
@@ -1098,6 +1132,10 @@ export default defineComponent({
             (form.elements.start.value = Math.round(region.start * 10) / 10),
             (form.elements.end.value = Math.round(region.end * 10) / 10);
             form.elements.note.value = region.data.note || '';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b331b48c25311f8b977000f04e3cea9a9bce522
             form.onsubmit = function(e) {
                 e.preventDefault();
                 region.update({
@@ -1115,12 +1153,24 @@ export default defineComponent({
             };
             form.dataset.region = region.id;
         })
+<<<<<<< HEAD
         // quicker region delete by double right clicking
         this.wavesurfer.on('region-dblclick', function (region) {
             let form = document.forms.edit;
                 region.remove();
                 form.reset();
         })
+=======
+
+        // quicker region delete by double right clicking
+        this.wavesurfer.on('region-dblclick', function (region) {
+            let form = document.forms.edit;
+
+                region.remove();
+                form.reset();
+        })
+
+>>>>>>> 5b331b48c25311f8b977000f04e3cea9a9bce522
         this.sites = usePage().props.sites
         this.populateSiteDropdown()
     },
