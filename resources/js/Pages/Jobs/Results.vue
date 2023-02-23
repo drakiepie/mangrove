@@ -46,6 +46,31 @@
                         </div>
                     </div>
 
+                    <form role="form" name="edit" style="opacity: 0; transition: opacity 300ms linear; margin: 30px 0;">
+
+    <div class="form-group">
+        <label for="start" >Start</label>
+        <input class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="start" name="start" />
+    </div>
+
+    <div class="form-group">
+        <label for="end">End</label>
+        <input class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="end" name="end" />
+    </div>
+
+    <div class="form-group">
+        <label for="note">Note</label>
+        <textarea id="note" class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3" name="note"></textarea>
+    </div>
+
+    <center><button type="submit" class="btn btn-success btn-block">Save</button></center>
+
+    <center><i>or</i></center>
+
+    <center><button @click="deleteRegion" class="btn btn-danger btn-block"  id="delete-region">Delete</button></center>
+
+</form>
+
                     </div>
                 <div class="flex flex-col grow pr-4">
                     <div
@@ -491,10 +516,8 @@ import jsPDF from "jspdf";
 import * as JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
-
 let compareIndex = "";
 let graphInput, graphInputC;
-
 export default defineComponent({
     components: {
         AppLayout,
@@ -565,75 +588,60 @@ export default defineComponent({
         };
     },
     methods: {
-
         exportData: function () {
             this.exportingJSON ? this.exportAsJSON() : this.exportAsPDF();
         },
-
         generateImage: async function (element) {
             const canvas = await html2canvas(element);
             console.log(`canvas type: ${typeof canvas}\ncanvas.toDataURL("image/jpeg"): ${canvas.toDataURL("image/jpeg")}`)
             return canvas.toDataURL("image/jpeg");
         },
-
         exportAsPDF: function () {
             console.log('exporting PDF');
             var doc = new jsPDF();
             var title = "exported_data";
             doc.text("EXAMPLE PDF", 10, 10);
-
             // Export the Wavesurfer diagram as an SVG image
             const svg = this.wavesurfer.exportImage("svg");
-            console.log(svg);
             // Create an <img> element and set its src attribute to the SVG image data
             const img = document.createElement("img");
             img.src = "data:image/svg+xml;base64," + btoa(svg);
-
             // Add the <img> element to the PDF
             doc.addImage(img, "JPEG", 10, 50, 180, 150);
-
             // const wavesurferRegion = this.generateImage(document.getElementById("wavesurfer-container"));
             // doc.addImage(wavesurferRegion, "JPEG", 10, 50, 180, 150);
             doc.save(`${title}.pdf`);
         },
-
         exportAsJSON: function () {
             console.log('exporting JSON in zipped folder.');
             let test = {"name":"John", "age":30, "car":null};
-
             var zip = new JSZip();
             zip.file("data.json", JSON.stringify(test));    // Add JSON annotations
             if(this.wavFile != "")
             {
                 zip.file("audio.wav", this.wavFile);        // Add audio file
             }
-
             zip.generateAsync({type:"blob"})
             .then(function(content) {
                 saveAs(content, "example.zip");
             });
         },
-
         // Method for uploading zipped folder containing audio data and annotations.
         onZipFileSelected: function (e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-
             reader.onload = () => {
                 const zip = new JSZip();
                 const zipData = reader.result;
-
                 zip.loadAsync(zipData).then((contents) => {
                     const requiredFiles = ["audio.wav", "data.json"];
-
                     // If a required file is missing, throw error.
                     for (const requiredFile of requiredFiles)
                     {
                         if (!contents.files[requiredFile])
                         {
                             console.error(`Required file "${requiredFile}" not found`);
-                            alert(`Required file "${requiredFile}" not found`);
                             return;
                         }
                     }
@@ -641,7 +649,6 @@ export default defineComponent({
                     contents.files["audio.wav"].async("arraybuffer").then((audioData) => {
                         this.loading = true;
                         console.log("audioData: " + audioData);
-
                         // Apply uploaded .wav file to embedded wavesurfer.
                         const blob = new Blob([audioData], { type: 'audio/wav' });
                         this.wavFile = blob;
@@ -659,13 +666,11 @@ export default defineComponent({
             };
             reader.readAsArrayBuffer(file);
         },
-
         setSpFilePath: function () {
             this.loading = true;
             this.$refs.player.load();
             this.createSpectrogram();
         },
-
         onFileChange: function (e) {
             this.loading = true;
             this.wavFile = e.target.files[0]
@@ -675,27 +680,21 @@ export default defineComponent({
             this.$refs.player.load();
             this.createSpectrogram();
         },
-
         createSpectrogram() {
             this.wavesurfer.load(this.spFile);
         },
-
         showExportModal: function () {
             this.showModal = true;
         },
-
         closeExportModal: function () {
             this.showModal = false;
         },
-
         showGraphs: function () {
             this.upGraphs = this.currentIndex
             this.graphInput = JSON.parse(this.firstFileData[`${this.currentIndex.toLowerCase() + '_results'}`])
-
             if (this.singleFile == false) {
                 this.graphInputC = JSON.parse(this.secondFileData[`${this.currentIndex.toLowerCase() + '_results'}`])
                 this.chartSelection = ["Dual Line", "Compare Bar"]
-
                 if (this.selectedChart) {
                     this.selectedChart = 'Dual Line'
                 }
@@ -703,10 +702,8 @@ export default defineComponent({
                 if (this.selectedChart) {
                     this.selectedChart = 'Single Line'
                 }
-
                 if (this.upGraphs == 'BI') {
                     this.chartSelection = ["Single Line", "Single Bar", "Dual Line", "Compare Bar", "Frequency Over Time"]
-
                     let end = this.graphInput.freqVals.length;
                     let range = Array(end - 0 + 1).fill().map((_, idx) => 0 + idx);
                     this.graphInput = {...this.graphInput, range: range}
@@ -725,26 +722,21 @@ export default defineComponent({
                 prettyTime = prettyTime.slice(0, 2) + ':' + prettyTime.slice(2)
                 return prettyTime.slice(0, 5)
             }
-
             let resultsOne = []
             let range = []
             let data = {}
             let seriesIndex = index
             item.results.forEach(x => {
                 resultsOne.push(JSON.parse(x[`${seriesIndex.toLowerCase() + '_results'}`]))
-
                 let fileName = x.file.name.split('_')
                 range.push(prettyUpYear(fileName[1]) + ' - ' + prettyUpTime(fileName[2].split('.')[0]))
             })
-
-
             if (seriesIndex == 'ADI') {
                 let array = []
                 resultsOne.forEach(x => {
                     array.push(x.adiL)
                 })
                 data['adiL'] = array
-
                 let array2 = []
                 resultsOne.forEach(x => {
                     array2.push(x.adiR)
@@ -757,7 +749,6 @@ export default defineComponent({
                     array.push(x.aeiL)
                 })
                 data['aeiL'] = array
-
                 let array2 = []
                 resultsOne.forEach(x => {
                     array2.push(x.aeiR)
@@ -770,7 +761,6 @@ export default defineComponent({
                     array.push(x.areaL)
                 })
                 data['areaL'] = array
-
                 let array2 = []
                 resultsOne.forEach(x => {
                     array2.push(x.areaR)
@@ -783,7 +773,6 @@ export default defineComponent({
                     array.push(x.rmsL)
                 })
                 data['rmsL'] = array
-
                 let array2 = []
                 resultsOne.forEach(x => {
                     array2.push(x.rmsR)
@@ -796,16 +785,13 @@ export default defineComponent({
                     array.push(x.anthrophonyL)
                 })
                 data['anthrophonyL'] = array
-
                 let array2 = []
                 resultsOne.forEach(x => {
                     array2.push(x.biophonyL)
                 })
                 data['biophonyL'] = array2
             }
-
             let output = {}
-
             Object.keys(data).forEach(x => {
                 output[x] = []
                 data[x].forEach(y => {
@@ -813,12 +799,10 @@ export default defineComponent({
                 })
                 output[x].sort((a, b) => a.y > b.y)
             })
-
             return output
         },
         showGraphsSeries: function () {
             this.seriesGraphInput = this.buildIndicesData(this.selectedSeriesOne, this.seriesIndex)
-
             if (this.multiSeries) {
                 this.seriesGraphInputC = this.buildIndicesData(this.selectedSeriesTwo, this.seriesIndex)
             }
@@ -826,12 +810,10 @@ export default defineComponent({
         showGraphAllInSite: function () {
             let allSeries = this.site.series
             let data = []
-
             allSeries.forEach(x => {
                 if(x.results.length != 0)
                     data.push(this.buildIndicesData(x, this.allIndex))
             })
-
             this.allInSiteData = data
         },
         switchMode: function () {
@@ -900,7 +882,6 @@ export default defineComponent({
             })
             this.siteSelectionList = siteList;
         },
-
         populateSeriesDropdown: function () {
             this.selectedSeries = ''
             this.currentIndex = ''
@@ -909,7 +890,6 @@ export default defineComponent({
             this.selectedChart = ''
             let seriesList = []
             this.site = this.sites.find(x => x.name == this.selectedSite)
-
             this.site.series.forEach(x => {
                 if (x.results.length != 0)
                     seriesList.push(x.name)
@@ -924,7 +904,6 @@ export default defineComponent({
             this.selectedChart = ''
             let seriesList = []
             this.secondSite = this.sites.find(x => x.name == this.selectedSiteComparison)
-
             this.secondSite.series.forEach(x => {
                 if (x.results.length != 0)
                     seriesList.push(x.name)
@@ -978,26 +957,20 @@ export default defineComponent({
             this.currentIndex = '',
             this.upGraphs = '',
             this.selectedChart = ''
-
             this.firstFileData = {}
             this.series.results.forEach(x => {
                 if (x.file.name == this.sFile)
                     this.firstFileData = x
             })
-
             this.indices = this.findIndicesUsed(this.firstFileData)
             //this.onFileChange();
         },
         populateAllIndicesDropdown: function () {
             this.allIndex = ''
-
             this.site = this.sites.find(x => x.name == this.selectedSite)
-
             let data = this.site.series[0].results[0]
             let seriesList = []
-
             this.allIndices = this.findIndicesUsed(data)
-
             this.site.series.forEach(x => {
                 if (x.results.length != 0)
                     seriesList.push(x.name)
@@ -1006,14 +979,12 @@ export default defineComponent({
         },
         populateSeriesIndices: function () {
             this.seriesIndex = ''
-
             if (this.selectedSeries != '') {
                 this.selectedSeriesOne = this.site.series.find(x => x.name == this.selectedSeries)
             }
             if (this.selectedSeriesComparison != '') {
                 this.selectedSeriesTwo = this.secondSite.series.find(x => x.name == this.selectedSeriesComparison)
             }
-
             if (this.selectedSeries != '' && this.selectedSeriesComparison != '') {
                 let firstIndicesSet = this.findIndicesUsed(this.selectedSeriesOne.results[0])
                 let secondIndicesSet = this.findIndicesUsed(this.selectedSeriesTwo.results[0])
@@ -1023,15 +994,12 @@ export default defineComponent({
                         indicesSet.push(x)
                     }
                 })
-
                 this.seriesIndices = indicesSet
             } else if (this.selectedSeries != '' && this.seriesComparison && !this.multiSeries) {
                 let firstIndicesSet = this.findIndicesUsed(this.selectedSeriesOne.results[0])
-
                 this.seriesIndices = firstIndicesSet
             }
         },
-
         updateSpectrogramTime: function () {
             this.currTime = this.$refs['player'].currentTime;
             var timeDelta = Math.abs(this.currTime - this.wavesurfer.getCurrentTime());
@@ -1039,11 +1007,9 @@ export default defineComponent({
                 this.wavesurfer.seekTo(this.currTime / this.wavesurfer.getDuration());
             }
         },
-
         slideView: function () {
             this.wavesurfer.zoom(Number(this.$refs.slider.value));
         },
-
         exportToCSV: function () {
             let csv = "";
             this.series.results.forEach((row) => {
@@ -1060,7 +1026,6 @@ export default defineComponent({
     mounted() {
         const self = this;
         this.wavesurfer = WaveSurfer.create({
-
             hideScrollbar: true,
             container: "#wave",
             waveColor: "#D2EDD4",
@@ -1068,7 +1033,6 @@ export default defineComponent({
             backend: "MediaElement",
             mediaControls: true,
             responsive: true,
-
             plugins: [
                 SpectrogramPlugin.create({
                     responsive: true,
@@ -1091,6 +1055,25 @@ export default defineComponent({
                 })
             ],
         });
+         // store region list on waveform to update in local storage
+        var regionList = this.wavesurfer.regions.list;
+        // save annotations into browser while notes are generated
+        this.wavesurfer.on('region-updated', function () {
+           //  var testJSON = JSON.stringify({x: 5, y:6});
+            // localStorage.regions = temp;
+            console.log(regionList);
+            localStorage.regions = JSON.stringify(
+                Object.keys(regionList).map(function(id) {
+                    let targetRegion = regionList[id];
+                    return {
+                        start: targetRegion.start,
+                        end: targetRegion.end,
+                        attributes: targetRegion.attributes,
+                        data: targetRegion.data
+                    };
+                })
+            );
+        });
         this.wavesurfer.on('waveform-ready', function () {
             //self.$refs['animation'].active = false;
             self.$refs['animation'].display = "none";
@@ -1104,10 +1087,42 @@ export default defineComponent({
                 self.wavesurfer.seekTo(self.currTime / self.wavesurfer.getDuration());
             }
         });
-
+        // loop region on shift + right click
+        this.wavesurfer.on('region-click', function (region, e) {
+            e.shiftKey ? region.playLoop() : region.play();
+        });
+        // edit regional annotation
+        this.wavesurfer.on('region-click', function (region) {
+            let form = document.forms.edit;
+            form.style.opacity = 1;
+            (form.elements.start.value = Math.round(region.start * 10) / 10),
+            (form.elements.end.value = Math.round(region.end * 10) / 10);
+            form.elements.note.value = region.data.note || '';
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                region.update({
+                    start: form.elements.start.value,
+                    end: form.elements.end.value,
+                    data: {
+                        note: form.elements.note.value
+                    }
+                });
+                form.style.opacity = 0;
+            };
+            form.onreset = function() {
+                form.style.opacity = 0;
+                form.dataset.region = null;
+            };
+            form.dataset.region = region.id;
+        })
+        // quicker region delete by double right clicking
+        this.wavesurfer.on('region-dblclick', function (region) {
+            let form = document.forms.edit;
+                region.remove();
+                form.reset();
+        })
         this.sites = usePage().props.sites
         this.populateSiteDropdown()
     },
 })
-
 </script>
