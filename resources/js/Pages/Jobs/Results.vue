@@ -46,6 +46,31 @@
                         </div>
                     </div>
 
+                    <form role="form" name="edit" style="opacity: 0; transition: opacity 300ms linear; margin: 30px 0;">
+
+    <div class="form-group">
+        <label for="start" >Start</label>
+        <input class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="start" name="start" />
+    </div>
+
+    <div class="form-group">
+        <label for="end">End</label>
+        <input class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="end" name="end" />
+    </div>
+
+    <div class="form-group">
+        <label for="note">Note</label>
+        <textarea id="note" class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3" name="note"></textarea>
+    </div>
+
+    <center><button type="submit" class="btn btn-success btn-block">Save</button></center>
+
+    <center><i>or</i></center>
+
+    <center><button @click="deleteRegion" class="btn btn-danger btn-block"  id="delete-region">Delete</button></center>
+
+</form>
+
                     </div>
                 <div class="flex flex-col grow pr-4">
                     <div
@@ -1089,6 +1114,34 @@ export default defineComponent({
                 })
             ],
         });
+
+         // store region list on waveform to update in local storage
+        var regionList = this.wavesurfer.regions.list;
+
+        // save annotations into browser while notes are generated
+        this.wavesurfer.on('region-updated', function () {
+
+           //  var testJSON = JSON.stringify({x: 5, y:6});
+
+            // localStorage.regions = temp;
+
+            console.log(regionList);
+
+            localStorage.regions = JSON.stringify(
+                Object.keys(regionList).map(function(id) {
+                    let targetRegion = regionList[id];
+
+                    return {
+                        start: targetRegion.start,
+                        end: targetRegion.end,
+                        attributes: targetRegion.attributes,
+                        data: targetRegion.data
+                    };
+                })
+            );
+
+        });
+
         this.wavesurfer.on('waveform-ready', function () {
             //self.$refs['animation'].active = false;
             self.$refs['animation'].display = "none";
@@ -1102,6 +1155,45 @@ export default defineComponent({
                 self.wavesurfer.seekTo(self.currTime / self.wavesurfer.getDuration());
             }
         });
+
+        // loop region on shift + right click
+        this.wavesurfer.on('region-click', function (region, e) {
+            e.shiftKey ? region.playLoop() : region.play();
+        });
+
+        // edit regional annotation
+        this.wavesurfer.on('region-click', function (region) {
+            let form = document.forms.edit;
+            form.style.opacity = 1;
+            (form.elements.start.value = Math.round(region.start * 10) / 10),
+            (form.elements.end.value = Math.round(region.end * 10) / 10);
+            form.elements.note.value = region.data.note || '';
+
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                region.update({
+                    start: form.elements.start.value,
+                    end: form.elements.end.value,
+                    data: {
+                        note: form.elements.note.value
+                    }
+                });
+                form.style.opacity = 0;
+            };
+            form.onreset = function() {
+                form.style.opacity = 0;
+                form.dataset.region = null;
+            };
+            form.dataset.region = region.id;
+        })
+
+        // quicker region delete by double right clicking
+        this.wavesurfer.on('region-dblclick', function (region) {
+            let form = document.forms.edit;
+
+                region.remove();
+                form.reset();
+        })
 
         this.sites = usePage().props.sites
         this.populateSiteDropdown()
