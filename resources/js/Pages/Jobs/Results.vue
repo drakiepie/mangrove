@@ -584,7 +584,7 @@ export default defineComponent({
 
             // Export the Wavesurfer diagram as an SVG image
             const svg = this.wavesurfer.exportImage("svg");
-
+            console.log(svg);
             // Create an <img> element and set its src attribute to the SVG image data
             const img = document.createElement("img");
             img.src = "data:image/svg+xml;base64," + btoa(svg);
@@ -633,6 +633,7 @@ export default defineComponent({
                         if (!contents.files[requiredFile])
                         {
                             console.error(`Required file "${requiredFile}" not found`);
+                            alert(`Required file "${requiredFile}" not found`);
                             return;
                         }
                     }
@@ -643,6 +644,7 @@ export default defineComponent({
 
                         // Apply uploaded .wav file to embedded wavesurfer.
                         const blob = new Blob([audioData], { type: 'audio/wav' });
+                        this.wavFile = blob;
                         this.spFile = URL.createObjectURL(blob);
                         this.$refs.player.load();
                         this.createSpectrogram();
