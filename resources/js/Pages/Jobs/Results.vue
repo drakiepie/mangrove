@@ -7,13 +7,6 @@
                     @click="showExportModal"
                 > Export Data
                 </PrimaryButton>
-                <!--
-                <PrimaryButton
-                    class="btn ml-3 btn-success border-gray-200"
-                    type="file"
-                    @click="importJSON"
-                > Import JSON
-                </PrimaryButton> -->
                 <div>
                     <label>Upload Zipped Folder: </label>
                     <input type="file" accept=".zip" @change="onZipFileSelected" />
@@ -22,6 +15,7 @@
         </div>
         <div class="flex flex-col dark:text-black">
             <div class="py-4 flex flex-row flex-shrink">
+                <!-- Wavesurfer portion of Results screen -->
                 <div class="w-1/4 px-4">
                     <div class="bg-white shadow-xl sm:rounded-lg dark:shadow-inner dark:shadow-cyan-500 dark:bg-slate-900 dark:text-white" ref="wavesurferRegion">
                         <div class="p-2">
@@ -72,7 +66,9 @@
 </form>
 
                     </div>
+                <!-- File Analysis / Data Visualization portion of Results screen -->
                 <div class="flex flex-col grow pr-4">
+                    <!-- Analysis method / parameter selection -->
                     <div
                         class="p-4 flex bg-white shadow-xl sm:rounded-lg flex grow justify-between self-center max-h-24 w-full dark:shadow-inner dark:shadow-cyan-500 dark:bg-slate-900 dark:text-white"
                     >
@@ -119,7 +115,7 @@
                                 class="flex grow dark:text-black rounded"
                                 v-on:change="populateSeriesDropdown()"
                             >
-                                <option v-for="ind in siteSelectionList" v-bind:value="ind">
+                                <option v-for="ind in siteSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -133,7 +129,7 @@
                                 class="flex grow dark:text-black rounded"
                                 v-on:change="populateAllIndicesDropdown()"
                             >
-                                <option v-for="ind in siteSelectionList" v-bind:value="ind">
+                                <option v-for="ind in siteSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -147,7 +143,7 @@
                                 class="flex grow dark:text-black rounded"
                                 v-on:change="populateSingleFileDropdown()"
                             >
-                                <option v-for="ind in seriesSelectionList" v-bind:value="ind">
+                                <option v-for="ind in seriesSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -161,7 +157,7 @@
                                 class="flex grow dark:text-black rounded"
                                 v-on:change="populateSeriesIndices()"
                             >
-                                <option v-for="ind in seriesSelectionList" v-bind:value="ind">
+                                <option v-for="ind in seriesSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -175,7 +171,7 @@
                                 class="flex grow dark:text-black rounded"
                                 v-on:change="populateSecondSeriesDropdown()"
                             >
-                                <option v-for="ind in siteSelectionList" v-bind:value="ind">
+                                <option v-for="ind in siteSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -189,7 +185,7 @@
                                 class="flex grow dark:text-black rounded"
                                 v-on:change="populateSeriesIndices()"
                             >
-                                <option v-for="ind in secondSeriesSelectionList" v-bind:value="ind">
+                                <option v-for="ind in secondSeriesSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -203,7 +199,7 @@
                                 class="flex grow dark:text-black rounded w-24"
                                 v-on:change="populateIndicesDropdown()"
                             >
-                                <option v-for="ind in singleFileSelectionList" v-bind:value="ind">
+                                <option v-for="ind in singleFileSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -217,7 +213,7 @@
                                 class="flex dark:text-black rounded w-24"
                                 v-on:change="populateComparisonFileData()"
                             >
-                                <option v-for="ind in singleFileSelectionList" v-bind:value="ind">
+                                <option v-for="ind in singleFileSelectionList" v-bind:value="ind" @click="checkIfExporting()">
                                     {{ ind }}
                                 </option>
                             </select>
@@ -230,7 +226,7 @@
                                 v-model="seriesIndex"
                                 :disabled="(this.selectedSeries == '' && !multiSeries) || (this.selectedSeries == '' && this.selectedSeriesComparison == '' && multiSeries)"
                                 class="flex grow dark:text-black rounded"
-                                v-on:change="showGraphsSeries()"
+                                v-on:change="showGraphsSeries();checkIfExporting();"
                             >
                                 <option
                                     v-for="ind in seriesIndices"
@@ -248,7 +244,7 @@
                                 v-model="currentIndex"
                                 :disabled="(sFile == '' || sFile == null) || ((cFile == '' || cFile == null) && !singleFile)"
                                 class="flex grow dark:text-black rounded"
-                                v-on:change="showGraphs()"
+                                v-on:change="showGraphs();checkIfExporting();"
                             >
                                 <option
                                     v-for="ind in indices"
@@ -265,7 +261,7 @@
                                 v-model="allIndex"
                                 :disabled="(selectedSite == '')"
                                 class="flex grow dark:text-black rounded"
-                                v-on:change="showGraphAllInSite()"
+                                v-on:change="showGraphAllInSite();checkIfExporting();"
                             >
                                 <option
                                     v-for="ind in allIndices"
@@ -283,6 +279,7 @@
                                 v-model="selectedChart"
                                 :disabled="upGraphs == 'NDSI' || upGraphs == 'RMS' || (sFile == '' || sFile == null) || ((cFile == '' || cFile == null) && !singleFile) || this.currentIndex == ''"
                                 class="flex grow dark:text-black rounded"
+                                v-on:change="checkIfExporting()"
                             >
                                 <option
                                     v-for="ind in chartSelection"
@@ -299,7 +296,8 @@
                             </audio>
                         </div>
                     </div>
-
+                    <!-- Selected Visualizations -->
+                    <div id="visualization">
                     <div
                         v-if="upGraphs != '' && (selectedChart != '' || (selectedChart == '' && (upGraphs == 'NDSI' || upGraphs == 'RMS'))) && singleFile == true"
                         class="flex-col flex bg-white shadow-xl sm:rounded-lg p-4 mt-4 w-full items-center"
@@ -445,50 +443,216 @@
                                     :xLabel="'Date'" :yLabel="allIndex"/>
                         </div>
                     </div>
+                    </div>
+                    <PrimaryButton
+                        v-if="chartShowing"
+                        class="btn btn-success border-gray-200 mt-2 w-1/4 transform duration-100 justify-center"
+                        :class="{ 'bg-green-500 hover:bg-green-700': currentChartAdded,}"
+                        @click="handleCurrentChart"
+                    >{{currentChartAdded ? 'Exporting chart': 'Export this chart'}}
+                    </PrimaryButton>
                 </div>
-            </div>
 
-            <!-- Modal with data exportation settings. -->
-            <DialogModal :show="showModal" @close="showModal = false">
-                <template #title>
-                    <div>
-                        <p class="text-xl">
-                            Export Data {{exportingJSON ? 'as JSON': 'as PDF'}}
+            </div>
+        </div>
+        <!-- Modal with data exportation settings. -->
+        <DialogModal :show="showModal" @close="showModal = false" class="w-0">
+            <template #title>
+                <div class="border-b-2 border-grey-500">
+                    <div class="flex">
+                        <p class="text-xl align-middle">
+                            Export Data as:
                         </p>
-                        <!-- Div for switching between exporting PDF or JSON -->
-                        <div class="flex flex-row absolute top-4 right-4 border-2 border-red-500">
-                            <p class="text-sm align-middle">PDF</p>
-                            <!-- Switch Container -->
-                            <div class="w-16 h-10 cursor-pointer flex items-center bg-gray-300 rounded-full p-1" @click="exportingJSON = !exportingJSON">
-                                <div class="bg-white w-8 h-8 rounded-full shadow-md transform duration-300 ease-in-out" :class="{ 'translate-x-6': exportingJSON,}"></div>
+                        <input v-model="exportTitle" placeholder="Enter Title..." id="exportTitleInput" class="text-xl ml-2 mr-2 pl-2 border-2 border-black-700 rounded-md"/>
+                        <p class="text-xl">
+                            {{exportingJSON ? '.zip': '.pdf'}}
+                        </p>
+                    </div>
+                    <!-- <p class="text-base flex flex-col mt-2">
+                        {{exportingJSON ? 'Share with other Mangrove users.': 'Share data visualizations.'}}
+                    </p> -->
+                    <!-- Div for switching between exporting PDF or JSON -->
+                    <div class="flex flex-row absolute top-0 right-0 mx-4 my-1">
+                        <p class="text-sm align-center mx-2">PDF</p>
+                        <!-- Switch Container -->
+                        <div class="w-16 h-10 cursor-pointer flex items-center bg-gray-300 rounded-full p-1" @click="exportingJSON = !exportingJSON">
+                            <div class="bg-white w-8 h-8 rounded-full shadow-md transform duration-300 ease-in-out" :class="{ 'translate-x-6': exportingJSON,}"></div>
+                        </div>
+                        <p class="text-sm align-middle ml-2 ">JSON</p>
+                    </div>
+                </div>
+                <p class="text-base flex flex-col mt-2">
+                        {{exportingJSON ? 'Share with other Mangrove users.': 'Share data visualizations.'}}
+                    </p>
+            </template>
+
+            <template #content>
+                <div>
+                    {{exportingJSON ? 'Options for JSON file:': 'Options for PDF file:'}}
+                </div>
+                <!-- JSON export options-->
+                <div v-if="exportingJSON">
+                    TODO: JSON export options
+                </div>
+                <!-- PDF export options-->
+                <div v-else>
+                    <!-- table -->
+                    <div class="flex flex-col px-6 overflow-y-auto overflow-x-hidden max-h-96">
+                        <div class="py-4 align-middle inline-block min-w-full">
+                            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="px-6 py-3 text-left font-medium text-neutral-900 uppercase"
+                                            scope="col"
+                                        >Site
+                                        </th>
+                                        <th
+                                            class="px-6 py-3 text-left font-medium text-neutral-900 uppercase"
+                                            scope="col"
+                                        >Series
+                                        </th>
+                                        <th
+                                            class="px-6 py-3 text-left font-medium text-neutral-900 uppercase"
+                                            scope="col"
+                                        >Ind.
+                                        </th>
+                                        <th
+                                            class="px-6 py-3 text-left font-medium text-neutral-900 uppercase"
+                                            scope="col"
+                                        >Chart
+                                        </th>
+                                        <th
+                                            class="px-6 py-3 text-left font-medium text-neutral-900 uppercase"
+                                            scope="col"
+                                        >File
+                                        </th>
+                                        <th
+                                            class="px-6 py-3 text-left font-medium text-neutral-900 uppercase"
+                                            scope="col"
+                                        >
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr
+                                        v-for="(
+                                                    item, index
+                                                ) in exportVisualizations"
+                                        :key="index"
+                                    >
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-start">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ (item.site2 == '') ? `${item.site1}` : `${item.site1}, ${item.site2}` }}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-start">
+                                                <div>
+                                                    <div class="text-sm text-gray-500">
+                                                        {{ (item.series2 == '') ? `${item.series1}` : `${item.series1}, ${item.series2}` }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-start">
+                                                <div>
+                                                    <div class="text-sm text-gray-500 overflow-x-hidden">
+                                                        {{ item.indices }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td lass="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-start">
+                                                <div>
+                                                    <div class="text-sm text-gray-500">
+                                                        {{ (item.indices == 'RMS' || item.indices == 'NDSI') ? `Compare Bar` : `${item.chart}` }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td lass="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-start">
+                                                <div>
+                                                    <div class="text-sm text-gray-500">
+                                                        {{ (item.cFile == '') ? `${item.sFile}` : `${item.sFile}, ${item.cFile}` }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td lass="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-start">
+                                                <div>
+                                                    <!-- <div class="text-sm text-gray-500"> -->
+                                                    <div class="text-sm text-gray-500 flex">
+                                                        <!-- Arrows to configure list order-->
+                                                        <div class="">
+                                                            <svg
+                                                                class="h-4 w-4 text-black hover:bg-zinc-100"
+                                                                width="24" height="24"
+                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                                fill="none" stroke-linecap="round" stroke-linejoin="round"
+                                                                @click="moveItemUp(item, index)"
+                                                            >
+                                                                <path stroke="none" d="M0 0h24v24H0z"/>
+                                                                <polyline points="6 15 12 9 18 15" />
+                                                            </svg>
+                                                            <svg
+                                                                class="h-4 w-4 text-black rotate-180 hover:bg-zinc-100"
+                                                                width="24" height="24"
+                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                                fill="none" stroke-linecap="round" stroke-linejoin="round"
+                                                                @click="moveItemDown(item, index)"
+                                                            >
+                                                                <path stroke="none" d="M0 0h24v24H0z"/>
+                                                                <polyline points="6 15 12 9 18 15" />
+                                                            </svg>
+                                                        </div>
+                                                        <!-- X to remove from list -->
+                                                        <div>
+                                                            <svg
+                                                                class="h-6 w-6 text-red-600 justify-center hover:text-red-900"
+                                                                width="24" height="24"
+                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                                fill="none" stroke-linecap="round" stroke-linejoin="round"
+                                                                @click="handleDeleteExport(item, index)"
+                                                            >
+                                                                <path stroke="none" d="M0 0h24v24H0z"/>
+                                                                <line x1="18" y1="6" x2="6" y2="18" />
+                                                                <line x1="6" y1="6" x2="18" y2="18" />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                            <p class="text-sm align-middle">JSON</p>
                         </div>
                     </div>
-                </template>
+                </div>
+            </template>
 
-                <template #content>
-                    <div>
-                        {{exportingJSON ? 'Options for JSON file:': 'Options for PDF file:'}}
-                    </div>
-                    <!-- JSON export options-->
-                    <div v-if="exportingJSON">TODO: JSON export options</div>
-                    <!-- PDF export options-->
-                    <div v-else>TODO: PDF export options</div>
-                </template>
+            <template #footer>
+                <PrimaryButton @click="closeExportModal" class="ml-3 bg-red-800">
+                    CANCEL
+                </PrimaryButton>
 
-                <template #footer>
-                    <PrimaryButton @click="closeExportModal" class="ml-3 bg-red-800">
-                        CANCEL
-                    </PrimaryButton>
-
-                    <PrimaryButton @click="exportData" class="ml-3">
-                        EXPORT
-                    </PrimaryButton>
-                </template>
-            </DialogModal>
-
-        </div>
+                <PrimaryButton
+                    @click="exportData" class="ml-3"
+                    :disabled="(exportVisualizations.length < 1 && !exportingJSON)"
+                >
+                    EXPORT
+                </PrimaryButton>
+            </template>
+        </DialogModal>
     </app-layout>
 </template>
 
@@ -516,6 +680,7 @@ import jsPDF from "jspdf";
 import * as JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
+import _ from 'lodash';
 
 let compareIndex = "";
 let graphInput, graphInputC;
@@ -538,8 +703,17 @@ export default defineComponent({
     },
     data() {
         return {
+
+            /*-- Data for exportation --*/
             showModal: false,
-            exportingJSON: true,
+            exportingJSON: false,
+            exportTitle: '',
+            exportVisualizations: [],
+            currentChartAdded: false,
+            chartShowing: false,
+
+            /*--------------------------*/
+
             wavFile: null,
             annotations: null,
             spFile: "",
@@ -592,38 +766,143 @@ export default defineComponent({
     methods: {
 
         exportData: function () {
-            this.exportingJSON ? this.exportAsJSON() : this.exportAsPDF();
+            var title = this.exportTitle != ('' || null || undefined ) ? this.exportTitle : 'exported_data';
+            this.exportingJSON ? this.exportAsJSON(title) : this.exportAsPDF(title);
         },
 
         generateImage: async function (element) {
-            const canvas = await html2canvas(element);
-            console.log(`canvas type: ${typeof canvas}\ncanvas.toDataURL("image/jpeg"): ${canvas.toDataURL("image/jpeg")}`)
-            return canvas.toDataURL("image/jpeg");
+            // This unfortunate line seems to be the best way to get the canvas element from within the "visualization" element
+            var canvas = element.firstElementChild.firstElementChild.firstElementChild.firstElementChild
+            console.log(canvas)
+            return canvas.toDataURL("image/png");
         },
 
-        exportAsPDF: function () {
-            console.log('exporting PDF');
-            var doc = new jsPDF();
-            var title = "exported_data";
-            doc.text("EXAMPLE PDF", 10, 10);
+        exportAsPDF: function (title) {
 
-            // Export the Wavesurfer diagram as an SVG image
-            const svg = this.wavesurfer.exportImage("svg");
+            // a4 formatting = 210mm x 297mm (8.27" x 11.69") = 1.4142:1 or sqrt(2):1
+            var doc = new jsPDF('p', 'mm', 'a4');
+            var width = doc.internal.pageSize.getWidth();
+            const inch = 25.4;
+            var padding = inch;
+            var pageNum = 1;
+            var finalPage = Math.ceil(this.exportVisualizations.length / 2);
 
-            // Create an <img> element and set its src attribute to the SVG image data
-            const img = document.createElement("img");
-            img.src = "data:image/svg+xml;base64," + btoa(svg);
+            if(title == '' || title == null || title == undefined) title = 'Exported Data';
 
-            // Add the <img> element to the PDF
-            doc.addImage(img, "JPEG", 10, 50, 180, 150);
+            var currentIdx = 0;
+            while(pageNum <= finalPage)
+            {
+                // Add header to page
+                doc.setFontSize(22);
+                doc.text(`${title}`, inch, inch);
+                doc.text(`${pageNum}`, width - inch, inch)
+                padding += inch;
+                doc.setFontSize(16);
 
-            // const wavesurferRegion = this.generateImage(document.getElementById("wavesurfer-container"));
-            // doc.addImage(wavesurferRegion, "JPEG", 10, 50, 180, 150);
+                // Add up to 2 visualizations to page
+                for(let i = 0; i < 2; i++)
+                {
+                    if(this.exportVisualizations[currentIdx] == undefined) break;
+                    doc.addImage(this.exportVisualizations[currentIdx].imageURL, 'PNG', inch, padding, 150, 100);
+                    currentIdx++;
+                    padding += (inch + 100);
+                }
+                pageNum++;
+                padding = inch;
+                if(pageNum <= finalPage) doc.addPage();
+            }
+            if(doc.internal.getNumberOfPages() > finalPage) doc.deletePage(finalPage+1);
             doc.save(`${title}.pdf`);
         },
 
-        exportAsJSON: function () {
-            console.log('exporting JSON in zipped folder.');
+        handleCurrentChart: async function () {
+            // The only time selectedChart can be blank is for NDSI or RMS.
+            if(this.upGraphs != 'NDSI' && this.upGraphs != 'RMS' && this.selectedChart == '')
+                {
+                    alert("Select a Chart.");
+                    return;
+                }
+
+            var entry = {
+                chart: this.selectedChart,
+                indices: this.upGraphs,
+                sFile: this.sFile,
+                cFile: this.cFile,
+                site1: this.selectedSite,
+                series1: this.selectedSeries,
+                site2: this.selectedSiteComparison,
+                series2: this.selectedSeriesComparison,
+                imageURL: null,
+                canvas: null
+            };
+
+            // If chart is already in export list.
+            if(this.currentChartAdded)
+            {
+                // Iterate through the export visualizations in reverse and remove desired element.
+                var i = this.exportVisualizations.length
+                while (i--)
+                {
+                    if( _.isEqual( _.omit(entry, ['imageURL', 'canvas']), _.omit(this.exportVisualizations[i], ['imageURL', 'canvas']) ) )
+                        this.exportVisualizations.splice(i, 1);
+                }
+                this.currentChartAdded = false;
+            }
+            else
+            {
+                entry.imageURL = await this.generateImage(document.getElementById("visualization"));
+                this.exportVisualizations.push(entry);
+                this.currentChartAdded = true;
+            }
+        },
+
+        // Function that checks if chart is already in the export list.
+        checkIfExporting: function () {
+            var current = {
+                chart: this.selectedChart,
+                indices: this.upGraphs,
+                sFile: this.sFile,
+                cFile: this.cFile,
+                site1: this.selectedSite,
+                series1: this.selectedSeries,
+                site2: this.selectedSiteComparison,
+                series2: this.selectedSeriesComparison,
+                imageURL: null,
+                canvas: null
+            };
+
+            for(let i = 0; i < this.exportVisualizations.length; i++)
+            {
+                // if(_.isEqual(current, this.exportVisualizations[i]))
+                if( _.isEqual( _.omit(current, ['imageURL', 'canvas']), _.omit(this.exportVisualizations[i], ['imageURL', 'canvas']) ) )
+                {
+                    this.currentChartAdded = true;
+                    return;
+                }
+            }
+            this.currentChartAdded = false;
+        },
+
+        moveItemUp: function (item, index) {
+            if(index <= 0) return;  // Out of bounds.
+            const temp = this.exportVisualizations[index-1];
+            this.exportVisualizations[index-1] = item;
+            this.exportVisualizations[index] = temp;
+        },
+
+        moveItemDown: function (item, index) {
+            if(index >= this.exportVisualizations.length - 1) return;   // Out of bounds
+            const temp = this.exportVisualizations[index+1];
+            this.exportVisualizations[index+1] = item;
+            this.exportVisualizations[index] = temp;
+        },
+
+        handleDeleteExport: function (item, index) {
+            this.exportVisualizations.splice(index, 1);
+            this.checkIfExporting();
+        },
+
+        exportAsJSON: function (title) {
             let test = {"name":"John", "age":30, "car":null};
 
             var zip = new JSZip();
@@ -635,7 +914,7 @@ export default defineComponent({
 
             zip.generateAsync({type:"blob"})
             .then(function(content) {
-                saveAs(content, "example.zip");
+                saveAs(content, `${title}.zip`);
             });
         },
 
@@ -664,7 +943,6 @@ export default defineComponent({
                     // Get contents of the audio file
                     contents.files["audio.wav"].async("arraybuffer").then((audioData) => {
                         this.loading = true;
-                        console.log("audioData: " + audioData);
 
                         // Apply uploaded .wav file to embedded wavesurfer.
                         const blob = new Blob([audioData], { type: 'audio/wav' });
@@ -677,7 +955,6 @@ export default defineComponent({
                     contents.files["data.json"].async("string").then((jsonData) => {
                         const data = JSON.parse(jsonData);
                         this.annotations = data;
-                        console.log("JSONdata: " + data);
                     });
                 });
             };
@@ -705,6 +982,49 @@ export default defineComponent({
         },
 
         showExportModal: function () {
+            // console.log("----------------------------------------------------")
+            // console.log('exportVisualizations = ');
+            // for(let i = 0; i < this.exportVisualizations.length; i++)
+            // {
+            //     console.log(`${i}:\t${JSON.stringify(this.exportVisualizations[i])}`)
+            // }
+
+            // // All the indices being used
+            // console.log('upGraphs = ' + this.upGraphs);
+            // // other than RMS and NDSI, the graph selected
+            // console.log('selectedChart = ' + this.selectedChart);
+
+            // console.log('selectedSeries = ' + JSON.stringify(this.selectedSeries));
+            // console.log('selectedSeriesComparison = ' + JSON.stringify(this.selectedSeriesComparison));
+            // // console.log('selectedSeriesOne = ' + JSON.stringify(this.selectedSeriesOne));
+            // // console.log('selectedSeriesTwo = ' + JSON.stringify(this.selectedSeriesTwo));
+
+            // console.log('sFile = ' + this.sFile);
+            // console.log('cFile = ' + this.cFile);
+
+            // console.log('seriesIndices = ' + this.seriesIndices);
+            // console.log('seriesIndex = ' + this.seriesIndex);
+            // console.log('allIndices = ' + this.allIndices);
+            // console.log('siteSelectionList = ' + this.siteSelectionList)
+
+            // // Proxy stuff
+            // console.log("-")
+            // console.log('site =');
+            // console.log(this.site);
+
+            // console.log("-")
+            // console.log('secondSite =');
+            // console.log(this.secondSite);
+
+            // console.log("-")
+            // console.log('graphInput =');
+            // console.log(this.graphInput);
+
+            // console.log("-")
+            // console.log('series =');
+            // console.log(this.series);
+
+            // console.log("----------------------------------------------------");
             this.showModal = true;
         },
 
@@ -715,7 +1035,6 @@ export default defineComponent({
         showGraphs: function () {
             this.upGraphs = this.currentIndex
             this.graphInput = JSON.parse(this.firstFileData[`${this.currentIndex.toLowerCase() + '_results'}`])
-
             if (this.singleFile == false) {
                 this.graphInputC = JSON.parse(this.secondFileData[`${this.currentIndex.toLowerCase() + '_results'}`])
                 this.chartSelection = ["Dual Line", "Compare Bar"]
@@ -738,9 +1057,12 @@ export default defineComponent({
                     this.chartSelection = ["Single Line", "Single Bar", "Dual Line", "Compare Bar"]
                 }
             }
+            this.chartShowing = true;
+
         },
         buildIndicesData: function (item, index) {
             const prettyUpYear = (item) => {
+                console.log(item);
                 let prettyYear = item
                 return prettyYear.slice(4, 6) + '/' + prettyYear.slice(6) + '/' + prettyYear.slice(0, 4)
             }
@@ -855,7 +1177,6 @@ export default defineComponent({
                 if(x.results.length != 0)
                     data.push(this.buildIndicesData(x, this.allIndex))
             })
-
             this.allInSiteData = data
         },
         switchMode: function () {
@@ -863,6 +1184,8 @@ export default defineComponent({
             this.upGraphs = ''
             this.selectedChart = ''
             this.singleFile = false
+            this.chartShowing = false;
+            this.currentChartAdded = false;
         },
         switchModeSeries: function () {
             this.upGraphs = ''
@@ -870,10 +1193,14 @@ export default defineComponent({
             this.cFile = ''
             this.selectedSeries = ''
             this.seriesComparison = true
+            this.chartShowing = false;
+            this.currentChartAdded = false;
         },
         switchModeMultiSeries: function () {
             this.seriesIndex = ''
             this.multiSeries = true
+            this.chartShowing = false;
+            this.currentChartAdded = false;
         },
         switchModeAllInSite: function () {
             this.selectedSite = ''
@@ -881,6 +1208,8 @@ export default defineComponent({
             this.seriesComparison = false
             this.multiSeries = false
             this.allInSite = true
+            this.chartShowing = false;
+            this.currentChartAdded = false;
         },
         switchModeBackToSingle: function () {
             this.allIndex = ''
@@ -891,10 +1220,11 @@ export default defineComponent({
             this.seriesIndex = ''
             this.selectedSeriesComparison = ''
             this.selectedSiteComparison = ''
-            this.selectedChart = ''
             this.selectedSite = ''
             this.allInSite = false
             this.singleFile = true
+            this.chartShowing = false;
+            this.currentChartAdded = false;
         },
         evaluateSingleFile: function () {
             if (this.singleFile && !this.allInSite)
