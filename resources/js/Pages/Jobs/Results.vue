@@ -712,7 +712,11 @@ export default defineComponent({
             currentChartAdded: false,
             chartShowing: false,
 
-            /*--------------------------*/
+            /*-----------data for JSON exporting---------------*/
+            regionToDelete: null,
+            wavesurferRegionListOBJ: null,
+            globalWavesurferReference: null,
+            jsonNotes: null,
 
             wavFile: null,
             annotations: null,
@@ -903,10 +907,10 @@ export default defineComponent({
         },
 
         exportAsJSON: function (title) {
-            let test = {"name":"John", "age":30, "car":null};
+            let test = this.jsonNotes;
 
             var zip = new JSZip();
-            zip.file("data.json", JSON.stringify(test));    // Add JSON annotations
+            zip.file("data.json", test);    // Add JSON annotations
             if(this.wavFile != "")
             {
                 zip.file("audio.wav", this.wavFile);        // Add audio file
@@ -959,6 +963,37 @@ export default defineComponent({
                 });
             };
             reader.readAsArrayBuffer(file);
+        },
+
+        yellowColor: function (alpha) {
+            return (
+                'rgba(' +
+                [
+                    245,
+                    189,
+                    31,
+                    alpha
+                ] +
+                ')'
+            );
+        },
+
+        loadAnnotations (regions, surfer) {
+            surfer.clearRegions();
+            console.log("in load regions function" + this.wavesurfer);
+            regions.forEach(function(region) {
+                region.color = "rgba(245,189,31,0.3)";
+                surfer.addRegion(region);
+            });
+        },
+
+        deleteRegionCall: function (e) {
+            if (this.regionToDelete != null)
+                this.wavesurferRegionListOBJ[this.regionToDelete].remove();
+
+            this.regionToDelete = null;
+
+            console.log("Region has been successfully deleted");
         },
 
         setSpFilePath: function () {
@@ -1431,14 +1466,7 @@ export default defineComponent({
                     colorMap: this.colorMap,
                 }),
                 RegionsPlugin.create({
-                    regions: [
-                        {
-                            start: 1,
-                            end: 3,
-                            loop: false,
-                            color: 'hsla(400, 100%, 30%, 0.5)'
-                        },
-                    ],
+                    regions: [],
                     dragSelection: {
                         slop: 5
                     }
@@ -1449,17 +1477,33 @@ export default defineComponent({
          // store region list on waveform to update in local storage
         var regionList = this.wavesurfer.regions.list;
 
+        // store globaly the list of regions
+        this.wavesurferRegionListOBJ = regionList;
+
+        // store globaly refernce to wavesurfer in mounted
+        this.globalWavesurferReference = this.wavesurfer;
+
+        // store region to remove
+        var storeDeleteRegionid = this.regionToDelete;
+
+        // event handling for when creating wave container with uploaded notes
+        this.wavesurfer.on('ready', function () {
+
+            if (self.annotations) {
+                console.log("we have data to use: " + self.annotations);
+                self.loadAnnotations(self.annotations, self.wavesurfer);
+            }
+
+        });
+
         // save annotations into browser while notes are generated
         this.wavesurfer.on('region-updated', function () {
 
-           //  var testJSON = JSON.stringify({x: 5, y:6});
-
-            // localStorage.regions = temp;
-
-            console.log(regionList);
+            // console.log(regionList);
 
             localStorage.regions = JSON.stringify(
                 Object.keys(regionList).map(function(id) {
+
                     let targetRegion = regionList[id];
 
                     return {
@@ -1470,6 +1514,31 @@ export default defineComponent({
                     };
                 })
             );
+
+            self.jsonNotes = localStorage.regions;
+
+        });
+
+        // update local storage of region removal
+        this.wavesurfer.on('region-removed', function () {
+
+            // console.log(regionList);
+
+            localStorage.regions = JSON.stringify(
+                Object.keys(regionList).map(function(id) {
+
+                    let targetRegion = regionList[id];
+
+                    return {
+                        start: targetRegion.start,
+                        end: targetRegion.end,
+                        attributes: targetRegion.attributes,
+                        data: targetRegion.data
+                    };
+                })
+            );
+
+            self.jsonNotes = localStorage.regions;
 
         });
 
