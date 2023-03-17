@@ -55,7 +55,7 @@
                                             class="bg-white divide-y divide-gray-200"
                                         >
                                         <tr
-                                            v-for="item in items.reverse()"
+                                            v-for="item in reversedItems"
                                             :key="item"
                                         >
                                             <td
@@ -99,7 +99,6 @@
                                             >
                                                 <div
                                                     class="text-sm text-gray-900"
-                                                    :key="renderStatus"
                                                 >
 
                                                     <button class="bg-yellow-500 text-white font-bold py-2 px-4 rounded cursor-default shadow-lg w-28" v-if="item.status == 0">
@@ -147,15 +146,30 @@ export default defineComponent({
         PrimaryButton,
 
     },
+
     data() {
         return {
             items: [],
-            renderStatus: 0,
-            timer: null
+            timer: null,
+            interval: 1000,
         };
     },
 
+    computed: {
+        reversedItems() {
+            return this.items.reverse();
+        },
+        currentStatuses() {
+            return this.items.reduce((statuses, item) => {
+                statuses[item.id] = item.status;
+                return statuses;
+            }, {});
+        },
+    },
+
     mounted() {
+
+        this.items = usePage().props.jobs;
         this.timer = setInterval(this.fetchJobStatuses, 1000);
 
         const findIndicesUsed = (object) => {
@@ -207,7 +221,7 @@ export default defineComponent({
             return {indices: indicesUsed};
         };
 
-        this.items = usePage().props.jobs;
+        // this.items = usePage().props.jobs;
         this.items.forEach((element, ind) => {
             let result = findIndicesUsed(element);
             this.items[ind]["indicesUsed"] = result.indices;
@@ -233,25 +247,21 @@ export default defineComponent({
 
         async fetchJobStatuses() {
             try {
-                const response = await axios.get('/jobs/statuses');
+                const response = await axios.get('/jobs/statuses', { params: { currentStatuses: this.currentStatuses } });
                 const statuses = response.data.statuses;
-
                 const statusArray = Object.entries(statuses).map(([id, status]) => ({id: parseInt(id), status}));
 
+                // console.log(statusArray);
                 statusArray.forEach(statusObj => {
                     const index = this.items.findIndex(item => item.id === statusObj.id);
                     if (index !== -1 && this.items[index].status !== statusObj.status) {
                         this.items[index].status = statusObj.status;
+                        this.currentStatuses[statusObj.id] = statusObj.status;
                     }
                 });
             } catch (error) {
                 console.error('Error fetching job statuses:', error);
             }
-        },
-
-        renderStatuses: function() {
-            console.log("status rerendered");
-            this.renderStatus += 1;
         },
     },
 

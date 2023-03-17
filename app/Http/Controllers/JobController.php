@@ -12,6 +12,8 @@ use App\Models\JobInput;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
 
 class JobController extends Controller
 {
@@ -115,8 +117,10 @@ class JobController extends Controller
         ]);
     }
 
-    public function statuses(): JsonResponse
+    public function statuses(Request $request): JsonResponse
     {
+        $currentStatuses = $request->input('currentStatuses');
+
         $jobStatuses = auth()->user()?->jobs()->pluck('status', 'id');
 
         return response()->json([
