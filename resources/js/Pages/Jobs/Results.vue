@@ -485,8 +485,8 @@
             </template>
 
             <template #content>
-                <div>
-                    {{exportingJSON ? 'Options for JSON file:': 'Options for PDF file:'}}
+                <div v-if="!exportingJSON">
+                    Options for PDF file:
                 </div>
                 <!-- JSON export options-->
                 <div v-if="exportingJSON">

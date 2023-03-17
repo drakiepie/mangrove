@@ -11,6 +11,7 @@ use App\Jobs\ProcessSoundData;
 use App\Models\JobInput;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\JsonResponse;
 
 class JobController extends Controller
 {
@@ -113,4 +114,14 @@ class JobController extends Controller
             'sites' => $sites ?? [],
         ]);
     }
+
+    public function statuses(): JsonResponse
+    {
+        $jobStatuses = auth()->user()?->jobs()->pluck('status', 'id');
+
+        return response()->json([
+            'statuses' => $jobStatuses
+        ]);
+    }
+
 }

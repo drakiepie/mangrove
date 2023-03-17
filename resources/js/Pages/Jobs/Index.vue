@@ -55,7 +55,7 @@
                                             class="bg-white divide-y divide-gray-200"
                                         >
                                         <tr
-                                            v-for="item in items"
+                                            v-for="item in items.reverse()"
                                             :key="item"
                                         >
                                             <td
@@ -99,6 +99,7 @@
                                             >
                                                 <div
                                                     class="text-sm text-gray-900"
+                                                    :key="renderStatus"
                                                 >
 
                                                     <button class="bg-yellow-500 text-white font-bold py-2 px-4 rounded cursor-default shadow-lg w-28" v-if="item.status == 0">
@@ -148,11 +149,15 @@ export default defineComponent({
     },
     data() {
         return {
-            items: []
+            items: [],
+            renderStatus: 0,
+            timer: null
         };
     },
 
     mounted() {
+        this.timer = setInterval(this.fetchJobStatuses, 1000);
+
         const findIndicesUsed = (object) => {
             let indicesUsed = [];
             Object.keys(object).map((key) => {
@@ -215,7 +220,7 @@ export default defineComponent({
     },
     methods: {
 
-prob: function(e) {
+        prob: function(e) {
             switch(e)
             {
                 case 0: return "Queued";
@@ -224,8 +229,35 @@ prob: function(e) {
                 case 3: return "Failed";
                 default: return "";
             }
-        }
+        },
+
+        async fetchJobStatuses() {
+            try {
+                const response = await axios.get('/jobs/statuses');
+                const statuses = response.data.statuses;
+
+                const statusArray = Object.entries(statuses).map(([id, status]) => ({id: parseInt(id), status}));
+
+                statusArray.forEach(statusObj => {
+                    const index = this.items.findIndex(item => item.id === statusObj.id);
+                    if (index !== -1 && this.items[index].status !== statusObj.status) {
+                        this.items[index].status = statusObj.status;
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching job statuses:', error);
+            }
+        },
+
+        renderStatuses: function() {
+            console.log("status rerendered");
+            this.renderStatus += 1;
+        },
     },
+
+    beforeUnmount() {
+        clearInterval(this.timer);
+    }
 
 });
 </script>
