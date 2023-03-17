@@ -458,7 +458,7 @@
         <!-- Modal with data exportation settings. -->
         <DialogModal :show="showModal" @close="showModal = false" class="w-0">
             <template #title>
-                <div class="border-b-2 border-grey-500">
+                <div class="border-b-2 pb-2 border-grey-500">
                     <div class="flex">
                         <p class="text-xl align-middle">
                             Export Data as:
@@ -468,20 +468,18 @@
                             {{exportingJSON ? '.zip': '.pdf'}}
                         </p>
                     </div>
-                    <!-- <p class="text-base flex flex-col mt-2">
-                        {{exportingJSON ? 'Share with other Mangrove users.': 'Share data visualizations.'}}
-                    </p> -->
                     <!-- Div for switching between exporting PDF or JSON -->
-                    <div class="flex flex-row absolute top-0 right-0 mx-4 my-1">
-                        <p class="text-sm align-center mx-2">PDF</p>
+                    <!-- <div class="flex absolute top-0 right-0 mx-4 my-1 items-center"> -->
+                    <div class="flex absolute top-0 right-0 mt-2 mr-4 items-center">
+                        <p class="text-sm mr-2">PDF</p>
                         <!-- Switch Container -->
                         <div class="w-16 h-10 cursor-pointer flex items-center bg-gray-300 rounded-full p-1" @click="exportingJSON = !exportingJSON">
                             <div class="bg-white w-8 h-8 rounded-full shadow-md transform duration-300 ease-in-out" :class="{ 'translate-x-6': exportingJSON,}"></div>
                         </div>
-                        <p class="text-sm align-middle ml-2 ">JSON</p>
+                        <p class="text-sm ml-2 ">JSON</p>
                     </div>
                 </div>
-                <p class="text-base flex flex-col mt-2">
+                    <p class="text-base flex flex-col mt-1">
                         {{exportingJSON ? 'Share with other Mangrove users.': 'Share data visualizations.'}}
                     </p>
             </template>
@@ -492,7 +490,7 @@
                 </div>
                 <!-- JSON export options-->
                 <div v-if="exportingJSON">
-                    TODO: JSON export options
+                    Export a zipped file containing the currently loaded audio (.wav) and its given annotations (.json).
                 </div>
                 <!-- PDF export options-->
                 <div v-else>
@@ -537,103 +535,124 @@
                                     </thead>
                                     <tbody>
                                     <tr
-                                        v-for="(
-                                                    item, index
-                                                ) in exportVisualizations"
+                                        v-for="(item, index) in exportVisualizations"
                                         :key="index"
+                                        class="border-2 border-grey-500"
                                     >
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-start">
-                                                <div class="text-sm font-medium text-gray-900">
+                                        <td class="px-6 py-4 whitespace-normal max-w-[100px]">
+                                            <div class="">
+                                                <div class="text-sm font-medium text-gray-900 break-words">
                                                     {{ (item.site2 == '') ? `${item.site1}` : `${item.site1}, ${item.site2}` }}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-start">
+                                        <td class="px-6 py-4 whitespace-normal max-w-[100px]">
+                                            <div class="f">
                                                 <div>
-                                                    <div class="text-sm text-gray-500">
+                                                    <div class="text-sm text-gray-500 break-words">
                                                         {{ (item.series2 == '') ? `${item.series1}` : `${item.series1}, ${item.series2}` }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-start">
+                                        <td class="px-6 py-4 whitespace-normal max-w-[10px]">
+                                            <div class="">
                                                 <div>
-                                                    <div class="text-sm text-gray-500 overflow-x-hidden">
+                                                    <div class="text-sm text-gray-500 break-words">
                                                         {{ item.indices }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td lass="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-start">
+                                        <td class="px-6 py-4 whitespace-normal max-w-[115px]">
+                                            <div class="">
                                                 <div>
-                                                    <div class="text-sm text-gray-500">
+                                                    <div class="text-sm text-gray-500 break-words">
                                                         {{ (item.indices == 'RMS' || item.indices == 'NDSI') ? `Compare Bar` : `${item.chart}` }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td lass="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-start">
+                                        <td class="px-6 py-4 whitespace-normal max-w-[100px]" >
+                                            <div class="i">
                                                 <div>
-                                                    <div class="text-sm text-gray-500">
+                                                    <div class="text-sm text-gray-500 break-words">
                                                         {{ (item.cFile == '') ? `${item.sFile}` : `${item.sFile}, ${item.cFile}` }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td lass="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-start">
-                                                <div>
-                                                    <!-- <div class="text-sm text-gray-500"> -->
-                                                    <div class="text-sm text-gray-500 flex">
-                                                        <!-- Arrows to configure list order-->
-                                                        <div class="">
-                                                            <svg
-                                                                class="h-4 w-4 text-black hover:bg-zinc-100"
-                                                                width="24" height="24"
-                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                                fill="none" stroke-linecap="round" stroke-linejoin="round"
-                                                                @click="moveItemUp(item, index)"
-                                                            >
-                                                                <path stroke="none" d="M0 0h24v24H0z"/>
-                                                                <polyline points="6 15 12 9 18 15" />
-                                                            </svg>
-                                                            <svg
-                                                                class="h-4 w-4 text-black rotate-180 hover:bg-zinc-100"
-                                                                width="24" height="24"
-                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                                fill="none" stroke-linecap="round" stroke-linejoin="round"
-                                                                @click="moveItemDown(item, index)"
-                                                            >
-                                                                <path stroke="none" d="M0 0h24v24H0z"/>
-                                                                <polyline points="6 15 12 9 18 15" />
-                                                            </svg>
-                                                        </div>
-                                                        <!-- X to remove from list -->
-                                                        <div>
-                                                            <svg
-                                                                class="h-6 w-6 text-red-600 justify-center hover:text-red-900"
-                                                                width="24" height="24"
-                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                                fill="none" stroke-linecap="round" stroke-linejoin="round"
-                                                                @click="handleDeleteExport(item, index)"
-                                                            >
-                                                                <path stroke="none" d="M0 0h24v24H0z"/>
-                                                                <line x1="18" y1="6" x2="6" y2="18" />
-                                                                <line x1="6" y1="6" x2="18" y2="18" />
-                                                            </svg>
-                                                        </div>
+                                        <td class="px-6 py-4 whitespace-normal max-w-[80px]">
+                                            <div class="flex justify-between items-center">
+                                                <!-- Arrows to configure list order -->
+                                                <div class="flex flex-col">
+                                                    <div>
+                                                        <svg
+                                                        class="h-6 w-6 text-black hover:bg-zinc-100"
+                                                        width="24" height="24"
+                                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                        fill="none" stroke-linecap="round" stroke-linejoin="round"
+                                                        @click="moveItemUp(item, index)"
+                                                        >
+                                                        <path stroke="none" d="M0 0h24v24H0z"/>
+                                                        <polyline points="6 15 12 9 18 15" />
+                                                        </svg>
                                                     </div>
+                                                    <div>
+                                                        <svg
+                                                        class="h-6 w-6 text-black rotate-180 hover:bg-zinc-100"
+                                                        width="24" height="24"
+                                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                        fill="none" stroke-linecap="round" stroke-linejoin="round"
+                                                        @click="moveItemDown(item, index)"
+                                                        >
+                                                        <path stroke="none" d="M0 0h24v24H0z"/>
+                                                        <polyline points="6 15 12 9 18 15" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <!-- X to remove from list -->
+                                                <div>
+                                                <svg
+                                                    class="h-5 w-5 text-red-600 hover:bg-red-100"
+                                                    width="24" height="24"
+                                                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round"
+                                                    @click="handleDeleteExport(item, index)"
+                                                >
+                                                    <path stroke="none" d="M0 0h24v24H0z"/>
+                                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                                </svg>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- checkboxes -->
+                    <div class="px-6 mt-4 flex flex-row space-between">
+                        <div class="flex flex-col w-1/2">
+                            <div class="flex flex-row items-center">
+                                <input type="checkbox" class="form-checkbox" id="export-audio" v-model="pdfAddAudio">
+                                <label for="export-audio" class="ml-2">Export Audio File</label>
+                            </div>
+                            <div class="flex flex-row items-center mt-2">
+                                <input type="checkbox" class="form-checkbox" id="export-sites" v-model="pdfAddSites">
+                                <label for="export-sites" class="ml-2">Export Sites</label>
+                            </div>
+                        </div>
+                        <div class="flex flex-col w-1/2">
+                            <div class="flex flex-row items-center">
+                                <input type="checkbox" class="form-checkbox" id="export-series" v-model="pdfAddSeries">
+                                <label for="export-series" class="ml-2">Export Series</label>
+                            </div>
+                            <div class="flex flex-row items-center mt-2">
+                                <input type="checkbox" class="form-checkbox" id="export-index" v-model="pdfAddIndex">
+                                <label for="export-index" class="ml-2">Export Index</label>
                             </div>
                         </div>
                     </div>
@@ -704,13 +723,17 @@ export default defineComponent({
     data() {
         return {
 
-            /*-- Data for exportation --*/
+            /*-- Data for PDF exportation --*/
             showModal: false,
             exportingJSON: false,
             exportTitle: '',
             exportVisualizations: [],
             currentChartAdded: false,
             chartShowing: false,
+            pdfAddAudio: true,
+            pdfAddIndex: true,
+            pdfAddSeries: true,
+            pdfAddSites: true,
 
             /*-----------data for JSON exporting---------------*/
             regionToDelete: null,
@@ -781,9 +804,47 @@ export default defineComponent({
             return canvas.toDataURL("image/png");
         },
 
-        exportAsPDF: function (title) {
+        // exportAsPDF: function (title) {
 
-            // a4 formatting = 210mm x 297mm (8.27" x 11.69") = 1.4142:1 or sqrt(2):1
+        //     // a4 formatting = 210mm x 297mm (8.27" x 11.69") = 1.4142:1 or sqrt(2):1
+        //     var doc = new jsPDF('p', 'mm', 'a4');
+        //     var width = doc.internal.pageSize.getWidth();
+        //     const inch = 25.4;
+        //     var padding = inch;
+        //     var pageNum = 1;
+        //     var finalPage = Math.ceil(this.exportVisualizations.length / 2);
+
+        //     if(title == '' || title == null || title == undefined) title = 'Exported Data';
+
+        //     var currentIdx = 0;
+        //     while(pageNum <= finalPage)
+        //     {
+        //         // Add header to page
+        //         doc.setFontSize(22);
+        //         doc.text(`${title}`, inch, inch);
+        //         doc.text(`${pageNum}`, width - inch, inch)
+        //         padding += inch;
+        //         doc.setFontSize(16);
+
+        //         // Add up to 2 visualizations to page
+        //         for(let i = 0; i < 2; i++)
+        //         {
+        //             let entry = this.exportVisualizations[currentIdx];
+        //             if(entry == undefined) break;
+
+
+        //             doc.addImage(entry.imageURL, 'PNG', inch, padding, 150, 100);
+        //             currentIdx++;
+        //             padding += (inch + 100);
+        //         }
+        //         pageNum++;
+        //         padding = inch;
+        //         if(pageNum <= finalPage) doc.addPage();
+        //     }
+        //     if(doc.internal.getNumberOfPages() > finalPage) doc.deletePage(finalPage+1);
+        //     doc.save(`${title}.pdf`);
+        // },
+        exportAsPDF: function (title) {
             var doc = new jsPDF('p', 'mm', 'a4');
             var width = doc.internal.pageSize.getWidth();
             const inch = 25.4;
@@ -791,31 +852,76 @@ export default defineComponent({
             var pageNum = 1;
             var finalPage = Math.ceil(this.exportVisualizations.length / 2);
 
-            if(title == '' || title == null || title == undefined) title = 'Exported Data';
+            if (title == '' || title == null || title == undefined) title = 'Exported Data';
 
             var currentIdx = 0;
-            while(pageNum <= finalPage)
-            {
-                // Add header to page
+            while (pageNum <= finalPage) {
                 doc.setFontSize(22);
                 doc.text(`${title}`, inch, inch);
                 doc.text(`${pageNum}`, width - inch, inch)
-                padding += inch;
-                doc.setFontSize(16);
+                doc.setFontSize(12);
+                padding += 12
 
-                // Add up to 2 visualizations to page
-                for(let i = 0; i < 2; i++)
-                {
-                    if(this.exportVisualizations[currentIdx] == undefined) break;
-                    doc.addImage(this.exportVisualizations[currentIdx].imageURL, 'PNG', inch, padding, 150, 100);
+                for (let i = 0; i < 2; i++) {
+                    let entry = this.exportVisualizations[currentIdx];
+                    if (entry == undefined) break;
+
+                    if (this.pdfAddIndex) {
+                        let index = "";
+                        switch(entry.indices)
+                        {
+                            case "ACI":
+                                index = "Acoustic Complexity Index";
+                                break;
+                            case "NDSI":
+                                index = "Normalized Difference Soundscape Index";
+                                break;
+                            case "AEI":
+                                index = "Acoustic Evenness Index";
+                                break;
+                            case "ADI":
+                                index = "Acoustic Diversity Index";
+                                break;
+                            case "BI":
+                                index = "Bioacoustic Index";
+                                break;
+                            case "RMS":
+                                index = "Root Mean Square";
+                                break;
+                            default:
+                                break;
+                        };
+                        doc.text(`${index}`, inch, padding);
+                        padding += 6;
+                    }
+
+                    if (this.pdfAddAudio) {
+                        doc.text(`${entry.sFile}`, inch, padding);
+                        doc.text(entry.cFile.length >= 40 ? "" : `${entry.cFile}`, inch + 75, padding);
+                        padding += 6;
+                    }
+
+                    if (this.pdfAddSites) {
+                        doc.text(`Site: ${entry.site1}`, inch, padding);
+                        doc.text(`${entry.site2}`, inch + 75, padding);
+                        padding += 6;
+                    }
+
+                    if (this.pdfAddSeries) {
+                        doc.text(`Series: ${entry.series1}`, inch, padding);
+                        doc.text(`${entry.series2}`, inch + 75, padding);
+                        padding += 6;
+                    }
+
+                    doc.addImage(entry.imageURL, 'PNG', inch, padding - 10, 150, 100);
+                    padding += (100);
                     currentIdx++;
-                    padding += (inch + 100);
                 }
                 pageNum++;
                 padding = inch;
-                if(pageNum <= finalPage) doc.addPage();
+                if (pageNum <= finalPage) doc.addPage();
             }
-            if(doc.internal.getNumberOfPages() > finalPage) doc.deletePage(finalPage+1);
+            if (doc.internal.getNumberOfPages() > finalPage) doc.deletePage(finalPage + 1);
             doc.save(`${title}.pdf`);
         },
 
@@ -877,7 +983,6 @@ export default defineComponent({
 
             for(let i = 0; i < this.exportVisualizations.length; i++)
             {
-                // if(_.isEqual(current, this.exportVisualizations[i]))
                 if( _.isEqual( _.omit(current, ['imageURL', 'canvas']), _.omit(this.exportVisualizations[i], ['imageURL', 'canvas']) ) )
                 {
                     this.currentChartAdded = true;
@@ -1017,49 +1122,6 @@ export default defineComponent({
         },
 
         showExportModal: function () {
-            // console.log("----------------------------------------------------")
-            // console.log('exportVisualizations = ');
-            // for(let i = 0; i < this.exportVisualizations.length; i++)
-            // {
-            //     console.log(`${i}:\t${JSON.stringify(this.exportVisualizations[i])}`)
-            // }
-
-            // // All the indices being used
-            // console.log('upGraphs = ' + this.upGraphs);
-            // // other than RMS and NDSI, the graph selected
-            // console.log('selectedChart = ' + this.selectedChart);
-
-            // console.log('selectedSeries = ' + JSON.stringify(this.selectedSeries));
-            // console.log('selectedSeriesComparison = ' + JSON.stringify(this.selectedSeriesComparison));
-            // // console.log('selectedSeriesOne = ' + JSON.stringify(this.selectedSeriesOne));
-            // // console.log('selectedSeriesTwo = ' + JSON.stringify(this.selectedSeriesTwo));
-
-            // console.log('sFile = ' + this.sFile);
-            // console.log('cFile = ' + this.cFile);
-
-            // console.log('seriesIndices = ' + this.seriesIndices);
-            // console.log('seriesIndex = ' + this.seriesIndex);
-            // console.log('allIndices = ' + this.allIndices);
-            // console.log('siteSelectionList = ' + this.siteSelectionList)
-
-            // // Proxy stuff
-            // console.log("-")
-            // console.log('site =');
-            // console.log(this.site);
-
-            // console.log("-")
-            // console.log('secondSite =');
-            // console.log(this.secondSite);
-
-            // console.log("-")
-            // console.log('graphInput =');
-            // console.log(this.graphInput);
-
-            // console.log("-")
-            // console.log('series =');
-            // console.log(this.series);
-
-            // console.log("----------------------------------------------------");
             this.showModal = true;
         },
 
@@ -1096,6 +1158,9 @@ export default defineComponent({
 
         },
         buildIndicesData: function (item, index) {
+            const regex = /^[A-Za-z0-9]+_\d{8}_\d{6}\.wav$/;    // Regex for Song Meter SM4 recorder files.
+            console.log("buildIndicesData()");
+
             const prettyUpYear = (item) => {
                 console.log(item);
                 let prettyYear = item
@@ -1114,8 +1179,17 @@ export default defineComponent({
             item.results.forEach(x => {
                 resultsOne.push(JSON.parse(x[`${seriesIndex.toLowerCase() + '_results'}`]))
 
-                let fileName = x.file.name.split('_')
-                range.push(prettyUpYear(fileName[1]) + ' - ' + prettyUpTime(fileName[2].split('.')[0]))
+                // let fileName = x.file.name.split('_')
+                // range.push(prettyUpYear(fileName[1]) + ' - ' + prettyUpTime(fileName[2].split('.')[0]))
+                if (regex.test(x.file.name)) {
+                    let fileName = x.file.name.split('_')
+                    range.push(prettyUpYear(fileName[1]) + ' - ' + prettyUpTime(fileName[2].split('.')[0]));
+                }
+                else {
+                    //range.push();
+                    range = [...Array(10).keys()];
+                }
+
             })
 
 

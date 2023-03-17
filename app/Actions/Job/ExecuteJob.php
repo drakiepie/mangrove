@@ -20,7 +20,8 @@ class ExecuteJob implements ExecuteJobContract
         $jobInput = $job->getInput();
 
         $process = proc_open(
-            'Rscript processJob.R 2>&1',
+            "Rscript processJob.R 2>&1",
+            // "Rscript --max-ppsize=80000000 processJob.R 2>&1",
             [1 => ["pipe", "w"]],
             $pipes,
             base_path('scripts/Rscripts'),
