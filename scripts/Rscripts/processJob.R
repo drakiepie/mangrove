@@ -90,7 +90,7 @@ frequency_filter <-function(dir_path, min_freq, max_freq) {
 
         filtered_sig <- Re(signal::ifft(fourier)) # Inverse fourier transformation
         filtered_wav <- tuneR::Wave(filtered_sig, samp.rate = sample_rate, bit = bit)
-        tuneR::writeWave(filtered_wav, filename = 'yello', sample_rate)
+        tuneR::writeWave(filtered_wav, filename = file_name, sample_rate)
     }
 }
 
