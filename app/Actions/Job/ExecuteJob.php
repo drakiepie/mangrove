@@ -60,7 +60,7 @@ class ExecuteJob implements ExecuteJobContract
     protected function saveJobResults(JobInput $job, array $results): bool
     {
         try {
-            foreach (['aci', 'adi', 'aei', 'bi', 'ndsi', 'rms'] as $index) {
+            foreach (['aci', 'adi', 'aei', 'bi', 'ndsi', 'rms', 'frequencyFilter', 'acousticFilter'] as $index) {
                 if (isset($results[$index])) {
                     foreach ($results[$index] as $fileName => $data) {
                         $job->series->fileByName($fileName)?->results()->updateOrCreate([
