@@ -1,7 +1,6 @@
 library("rjson")
 library("tuneR")
 library("soundecology")
-library("stats")
 
 
 acoustic_helper <- function(data, indices) {
@@ -55,7 +54,7 @@ acoustic_filter <- function(dir_path, acoustic_index, max_val, timeStep) {
 
         # Calculates the <insert acoustic index here> for each subarray
         for (i in seq_along(subarrays)) {
-            indices <- acoustic_helper(subarrays[[i]], acoustic_index)
+            indices <- acoustic_helper(subarrays[[i]], acoustic_index) 
             if (indices > max_val) {
                 subarrays[[i]] <- tuneR::Wave(rep(0, length(subarrays[[i]])), samp.rate = sample_rate, bit = bit)
             }
@@ -74,25 +73,24 @@ frequency_filter <-function(dir_path, min_freq, max_freq) {
 
     file_Names <- list.files(path = dir_path, pattern = "\\.wav$", full.names = TRUE)
 
-    filtered_list <-list() # A list to store the filtered audio data
     for (file_name in file_Names) {
         audio_data <- tuneR::readWave(file_name)
         tuneR::normalize(audio_data, unit = c("1"), center =FALSE, rescale = FALSE) # the interval chosen is [-1,1]
         sample_rate <- audio_data@samp.rate
+        bit <- audio_data@bit
 
-        fourier <- stats::fft(audio_data) # fourier transformation
+        fourier <- stats::fft(audio_data@left) # fourier transformation
 
         # Frequencies
-        freq <- stats::fftfreq(n=length(audio_data), d=0.1)
+        freq <- (0:(length(audio_data@left)-1)) * (sample_rate / length(audio_data@left)) # Frequencies
 
         # Filtering the sample
         fourier[freq < min_freq] <- 0 #High Pass filter
         fourier[freq > max_freq] <- 0 # Low pass filter
 
-        filtered_wav <- stats::Re(stats::ifft(fourier)) # Inverse fourier transformation
-        filted_list[[file_name]] <- filtered_wav #Stores the new filtered data
-
-        tuneR::writeWave(filtered_wav, filename = file_name, sample_rate)
+        filtered_sig <- Re(signal::ifft(fourier)) # Inverse fourier transformation
+        filtered_wav <- tuneR::Wave(filtered_sig, samp.rate = sample_rate, bit = bit)
+        tuneR::writeWave(filtered_wav, filename = 'yello', sample_rate)
     }
 }
 
