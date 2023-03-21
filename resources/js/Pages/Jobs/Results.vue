@@ -800,7 +800,7 @@ export default defineComponent({
         generateImage: async function (element) {
             // This unfortunate line seems to be the best way to get the canvas element from within the "visualization" element
             var canvas = element.firstElementChild.firstElementChild.firstElementChild.firstElementChild
-            console.log(canvas)
+            // console.log(canvas)
             return canvas.toDataURL("image/png");
         },
 

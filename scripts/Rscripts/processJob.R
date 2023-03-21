@@ -55,7 +55,7 @@ acoustic_filter <- function(dir_path, acoustic_index, max_val, timeStep) {
 
         # Calculates the <insert acoustic index here> for each subarray
         for (i in seq_along(subarrays)) {
-            indices <- acoustic_helper(subarrays[[i]], acoustic_index) 
+            indices <- acoustic_helper(subarrays[[i]], acoustic_index)
             if (indices > max_val) {
                 subarrays[[i]] <- tuneR::Wave(rep(0, length(subarrays[[i]])), samp.rate = sample_rate, bit = bit)
             }
