@@ -6,8 +6,8 @@ library("soundecology")
 acoustic_helper <- function(data, indices) {
 
     ACI <- function() {
-    data.aci <- soundecology::acoustic_complexity(data)
-    return(data.aci$AciTotAll_left)
+    data.aci <- soundecology::acoustic_complexity_index(data)
+    return(data.aci$aciTotAllL)
     }
 
     NDSI <- function() {
@@ -16,7 +16,7 @@ acoustic_helper <- function(data, indices) {
     }
 
     BI <- function() {
-    data.bi <- soundecology::bioacoustic_index(data)
+    data.bi <- soundecology::bioacoust_index(data)
     return(data.bi$areaL)
     }
 
