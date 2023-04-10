@@ -16,7 +16,7 @@
         <div class="flex flex-col dark:text-black">
             <div class="py-4 flex flex-row flex-shrink">
                 <!-- Wavesurfer portion of Results screen -->
-//                <PrimaryButton @click="getSpectrogramCanvas" class="btn btn-success border-gray-200">Test</PrimaryButton>
+                <!-- <PrimaryButton @click="getSpectrogramCanvas" class="btn btn-success border-gray-200">Test</PrimaryButton> -->
                 <div class="w-1/4 px-4">
                     <div class="bg-white shadow-xl sm:rounded-lg dark:shadow-inner dark:shadow-cyan-500 dark:bg-slate-900 dark:text-white" ref="wavesurferRegion">
                         <div class="p-2">
