@@ -16,6 +16,7 @@
         <div class="flex flex-col dark:text-black">
             <div class="py-4 flex flex-row flex-shrink">
                 <!-- Wavesurfer portion of Results screen -->
+//                <PrimaryButton @click="getSpectrogramCanvas" class="btn btn-success border-gray-200">Test</PrimaryButton>
                 <div class="w-1/4 px-4">
                     <div class="bg-white shadow-xl sm:rounded-lg dark:shadow-inner dark:shadow-cyan-500 dark:bg-slate-900 dark:text-white" ref="wavesurferRegion">
                         <div class="p-2">
@@ -57,11 +58,11 @@
         <textarea id="note" class="form-control text-black shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3" name="note"></textarea>
     </div>
 
-    <center><button type="submit" class="btn btn-success btn-block">Save</button></center>
+    <center><PrimaryButton type="submit" class="btn btn-success border-gray-200">Save</PrimaryButton></center>
 
     <center><i>or</i></center>
 
-    <center><button @click="deleteRegion" class="btn btn-danger btn-block"  id="delete-region">Delete</button></center>
+    <center><PrimaryButton @click="deleteRegionCall" class="btn btn-success border-gray-200"  id="delete-region">Delete</PrimaryButton></center>
 
 </form>
 
@@ -741,6 +742,14 @@ export default defineComponent({
             globalWavesurferReference: null,
             jsonNotes: null,
 
+            /*-----------Data for copying clips from region---------------*/
+            start: 0,
+            end:0,
+            duration:0,
+            channelLength:0,
+            viewPrototype:0,
+            pos:0,
+
             wavFile: null,
             annotations: null,
             spFile: "",
@@ -913,6 +922,7 @@ export default defineComponent({
                         padding += 6;
                     }
 
+
                     doc.addImage(entry.imageURL, 'PNG', inch, padding - 10, 150, 100);
                     padding += (100);
                     currentIdx++;
@@ -921,6 +931,18 @@ export default defineComponent({
                 padding = inch;
                 if (pageNum <= finalPage) doc.addPage();
             }
+
+            let spectrogramCanavs = this.getSpectrogramCanvas();
+
+
+            if (spectrogramCanavs != null) {
+                finalPage++;
+
+                doc.addPage();
+
+                doc.addImage(spectrogramCanavs, 'PNG', inch, padding - 10, 150,100);
+            }
+
             if (doc.internal.getNumberOfPages() > finalPage) doc.deletePage(finalPage + 1);
             doc.save(`${title}.pdf`);
         },
@@ -1070,19 +1092,6 @@ export default defineComponent({
             reader.readAsArrayBuffer(file);
         },
 
-        yellowColor: function (alpha) {
-            return (
-                'rgba(' +
-                [
-                    245,
-                    189,
-                    31,
-                    alpha
-                ] +
-                ')'
-            );
-        },
-
         loadAnnotations (regions, surfer) {
             surfer.clearRegions();
             console.log("in load regions function" + this.wavesurfer);
@@ -1090,6 +1099,12 @@ export default defineComponent({
                 region.color = "rgba(245,189,31,0.3)";
                 surfer.addRegion(region);
             });
+
+            this.annotations = null;
+        },
+
+        addRegionColor (passedRegion) {
+            passedRegion.color = "rgba(117,224,1,0.3)";
         },
 
         deleteRegionCall: function (e) {
@@ -1099,6 +1114,112 @@ export default defineComponent({
             this.regionToDelete = null;
 
             console.log("Region has been successfully deleted");
+        },
+
+         async downloadWavFromBlobURL (blobURL, filename) {
+            try {
+                const response = await fetch(blobURL);
+                const blob = await response.blob();
+                saveAs(blob, filename);
+            } catch (error) {
+                console.error("Failed to download .wav file:", error);
+            }
+        },
+
+        sliceWavBlob: function (blob, start, duration) {
+            return new Promise((resolve) => {
+
+            const fileReader = new FileReader();
+
+            fileReader.onload = (event) => {
+            const buffer = event.target.result;
+            console.log("In slice .wav blob");
+            console.log(buffer);
+            const dataView = new DataView(buffer);
+
+            // WAV file header
+            const headerSize = 44;
+            const header = new Uint8Array(buffer.slice(0, headerSize));
+
+            // Extract WAV file information
+            const numChannels = dataView.getUint16(22, true);
+            const sampleRate = dataView.getUint32(24, true);
+            const bytesPerSample = dataView.getUint16(34, true) / 8;
+
+            // Calculate the start and end byte positions
+            const startByte = headerSize + start * numChannels * sampleRate * bytesPerSample;
+            const endByte = startByte + duration * numChannels * sampleRate * bytesPerSample;
+
+            // Extract the desired portion of the audio data
+            const audioData = new Uint8Array(buffer.slice(startByte, endByte));
+
+            // Create a new Blob with the extracted portion and the WAV header
+            const slicedWavBlob = new Blob([header, audioData], { type: "audio/wav" });
+            // console.log("-----" + slicedWavBlob + "------");
+            resolve(slicedWavBlob);
+            };
+
+            fileReader.readAsArrayBuffer(blob);
+
+
+        });
+        },
+
+        regionExtract: function (surfer, region) {
+
+            console.log("commencing region extract");
+
+            const file = this.wavFile;
+
+            console.log(file);
+
+            if (!file) {
+                console.log("returning");
+                return;
+            }
+
+            const wavFileBlob = new Blob([file], {type: "audio/wav"});
+
+            const start = Math.round(region.start);
+            const end = Math.round(region.end);
+
+            const duration = end - start;
+
+            this.sliceWavBlob(wavFileBlob, start, duration).then((slicedWavBlob) => {
+                const audioBlob = slicedWavBlob;
+
+                // const result = this.buffer2wav(surfer.backend.buffer, start, surfer.backend.buffer.length);
+
+                const blobURL = URL.createObjectURL(audioBlob);
+
+                const filename = 'extractedAudioRegion.wav';
+
+                this.downloadWavFromBlobURL(blobURL, filename);
+            });
+        },
+
+        // in order to save spectrogram we need to have a way to isolate the element
+        // by accessing the "wave container we are then able to "
+        getSpectrogramCanvas () {
+
+            if (this.wavFile == "" || this.wavFile == null) {
+                console.log("warning... no audio file was uploaded");
+                return null;
+            }
+            else {
+                let waveContainer = document.getElementById("wave");
+                let spectrogramElement = waveContainer.lastChild;
+                console.log("function show my element does get called");
+
+                if (spectrogramElement.lastChild == null) {
+                    spectrogramElement = waveContainer.children[1];
+                }
+
+                let image = spectrogramElement.lastChild.toDataURL("image/png");
+
+                return image;
+            }
+
         },
 
         setSpFilePath: function () {
@@ -1524,7 +1645,9 @@ export default defineComponent({
         const self = this;
         this.wavesurfer = WaveSurfer.create({
 
-            hideScrollbar: true,
+            hideScrollbar: false,
+            minPxPerSec : 100,
+            scrollParent : true,
             container: "#wave",
             waveColor: "#D2EDD4",
             progressColor: "#46B54D",
@@ -1567,7 +1690,16 @@ export default defineComponent({
                 console.log("we have data to use: " + self.annotations);
                 self.loadAnnotations(self.annotations, self.wavesurfer);
             }
+            else
+                self.wavesurfer.clearRegions();
+        });
 
+        // change the RGB of the region to something more visible
+        this.wavesurfer.on('region-created', function (region) {
+            console.log("---->" + self.annotations);
+
+            if (self.annotations == null)
+                self.addRegionColor(region);
         });
 
         // save annotations into browser while notes are generated
@@ -1637,6 +1769,9 @@ export default defineComponent({
 
         // edit regional annotation
         this.wavesurfer.on('region-click', function (region) {
+
+            self.regionToDelete = region.id;
+
             let form = document.forms.edit;
             form.style.opacity = 1;
             (form.elements.start.value = Math.round(region.start * 10) / 10),
@@ -1661,13 +1796,19 @@ export default defineComponent({
             form.dataset.region = region.id;
         })
 
-        // quicker region delete by double right clicking
+        // selects region to focus on clip by creating a new buffer that wavesurfer can load
         this.wavesurfer.on('region-dblclick', function (region) {
-            let form = document.forms.edit;
 
-                region.remove();
-                form.reset();
-        })
+            self.wavesurfer.pause();
+
+           console.log("double click has been registered" + " -> " + self.wavesurfer.backend.buffer.length);
+
+            let start = region.start;
+            let end = region.end;
+
+
+            self.regionExtract(self.wavesurfer, region);
+        });
 
         this.sites = usePage().props.sites
         this.populateSiteDropdown()
